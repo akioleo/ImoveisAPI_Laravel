@@ -40,10 +40,18 @@ class RealStateController extends Controller
     {
         $data = $request->all();
         try{
-            $realState = $this->realtertrState->create($data);
+            $realState = $this->realState->create($data);
+            //Se $data existir 'categories' e count for verdadeiro
+            if(isset($data['categories']) && count($data['categories']))
+            {
+                //Chamar o método de ligação ('categories()') e esse método chama o sync, que recebe os ID's para serem salvos para o imóvel das categorias informadas 
+
+                $realState->categories()->sync($data['categories']);
+            }
+
             return response()->json([
                 'data'=>[
-                    'msg' => 'Imóvel cadsatrado com sucesso!'
+                    'msg' => 'Imóvel cadastrado com sucesso!'
                     ]
                 ],200);
         } catch (\Exception $e){
@@ -61,9 +69,14 @@ class RealStateController extends Controller
             //$data as informações que deseja atualizar
             $realState->update($data);
 
+            if(isset($data['categories']) && count($data['categories']))
+            {
+                $realState->categories()->sync($data['categories']);
+            }
+
             return response()->json([
                 'data'=>[
-                    'msg' => 'Sucesso! Imóvel com sucesso!'
+                    'msg' => 'Sucesso! Imóvel alterado com sucesso!'
                 ]
             ],200);
         } catch (\Exception $e){
