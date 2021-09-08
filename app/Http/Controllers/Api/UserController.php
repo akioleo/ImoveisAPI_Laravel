@@ -43,9 +43,21 @@ class UserController extends Controller
             return response()->json($message->getMessage(), 401);
         }
 
+        Validator::make($data, [
+            'phone' => 'required',
+            'mobile_phone' => 'required'
+        ]);
+
         try{
             $data['password'] = bcrypt($data['password']);
-            $users = $this->user->create($data);
+            $user = $this->user->create($data);
+
+            //Quando criar o usuário na linha acima, e cria a relação abaixo
+            $user->profile()->create([
+                'phone' => $data['phone'],
+                'mobile_phone' => $data['mobile_phone'],
+            ]);
+
             return response()->json([
                 'data'=>[
                     'msg' => 'Usuário cadastrado com sucesso!'
