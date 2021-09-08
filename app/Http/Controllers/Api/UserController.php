@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Api\ApiMessages;
 use App\User;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -46,7 +47,7 @@ class UserController extends Controller
         Validator::make($data, [
             'phone' => 'required',
             'mobile_phone' => 'required'
-        ]);
+        ])->validate();
 
         try{
             $data['password'] = bcrypt($data['password']);
@@ -55,7 +56,7 @@ class UserController extends Controller
             //Quando criar o usuário na linha acima, e cria a relação abaixo
             $user->profile()->create([
                 'phone' => $data['phone'],
-                'mobile_phone' => $data['mobile_phone'],
+                'mobile_phone' => $data['mobile_phone']
             ]);
 
             return response()->json([
@@ -78,7 +79,10 @@ class UserController extends Controller
     public function show($id)
     {
         try{
-            $users = $this->user->findOrFail($id);
+            //Indica que a busca deve vir com os dados de profile
+            $users = $this->user->with('profile')->findOrFail($id);
+            //Array formatado corretamente no profile
+            $users->profile->social_networks = unserialize($users->profile->social_networks);
 
             return response()->json([
                 'data'=>$users
@@ -109,12 +113,20 @@ class UserController extends Controller
         {
             unset($data['password']);
         }
-        
+
+        Validator::make($data, [
+            'profile.phone' => 'required',
+            'profile.mobile_phone' => 'required'
+        ])->validate();
+
         try{
+            $profile = $data['profile'];
+            $profile['social_networks'] = serialize($profile['social_networks']);
             //Procura pelo ID, se não achar, cai no catch
             $users = $this->user->findOrFail($id);
             //$data as informações que deseja atualizar
             $users->update($data);
+            $users->profile()->update($profile);
 
             return response()->json([
                 'data'=>[
