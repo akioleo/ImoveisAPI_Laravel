@@ -29,8 +29,7 @@ class RealStateController extends Controller
     {
         try{
             //no real_state() só terá os imóveis do user()
-            $realState = auth('api')->user()->real_state()->with('photos')->findOrFail($id);
-
+            $realState = auth('api')->user()->real_state()->with('photos')->findOrFail($id)->makeHidden('thumb');
             return response()->json([
                 'data'=>$realState
             ],200);

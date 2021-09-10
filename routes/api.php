@@ -21,6 +21,10 @@ Route::prefix('v1')->namespace('Api')->group(function (){
     Route::post('login', 'Auth\\LoginJwtController@login')->name('login');
     Route::get('logout', 'Auth\\LoginJwtController@logout')->name('logout');
     Route::get('refresh', 'Auth\\LoginJwtController@refresh')->name('refresh');
+
+    Route::get('search', 'RealStateSearchController@index')->name('search');
+    Route::get('search/{real_state_id}', 'RealStateSearchController@show')->name('search_single');
+
     //Chamando o middleware configurado no Kernel
     Route::group(['middleware' => ['jwt.auth']], function (){
 
