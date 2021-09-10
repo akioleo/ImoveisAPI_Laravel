@@ -12,27 +12,34 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
 Route::prefix('v1')->namespace('Api')->group(function (){
-    Route::name('real_states.')->group(function (){
-        Route::resource('/real-states', 'RealStateController');
-    });
+    //Quando acessar login mandando email e senha, chama o método login
+    Route::post('login', 'Auth\\LoginJwtController@login')->name('login');
+    Route::get('logout', 'Auth\\LoginJwtController@logout')->name('logout');
+    Route::get('refresh', 'Auth\\LoginJwtController@refresh')->name('refresh');
+    //Chamando o middleware configurado no Kernel
+    Route::group(['middleware' => ['jwt.auth']], function (){
 
-    Route::name('users.')->group(function (){
-        Route::resource('/users', 'UserController');
-    });
+        Route::name('real_states.')->group(function (){
+            Route::resource('/real-states', 'RealStateController');
+        });
 
-    Route::name('categories.')->group(function (){
-        Route::get('categories/{id}/real-states', 'CategoryController@realState');
-        Route::resource('/categories', 'CategoryController');
-    });
+        Route::name('users.')->group(function (){
+            Route::resource('/users', 'UserController');
+        });
 
-    Route::name('photos.')->prefix('photos')->group(function (){
-        Route::delete('/{id}', 'RealStatePhotoController@remove')->name('delete');
-        Route::put('/set-thumb/{photoId}/{realStateId}', 'RealStatePhotoController@setThumb')->name('delete');
+        Route::name('categories.')->group(function (){
+            Route::get('categories/{id}/real-states', 'CategoryController@realState');
+            Route::resource('/categories', 'CategoryController');
+        });
+
+        Route::name('photos.')->prefix('photos')->group(function (){
+            Route::delete('/{id}', 'RealStatePhotoController@remove')->name('delete');
+            Route::put('/set-thumb/{photoId}/{realStateId}', 'RealStatePhotoController@setThumb')->name('delete');
+        });
     });
 });

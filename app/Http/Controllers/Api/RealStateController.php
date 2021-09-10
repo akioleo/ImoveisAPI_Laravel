@@ -18,14 +18,18 @@ class RealStateController extends Controller
 
     public function index()
     {
-        $realState = $this->realState->paginate('10');
-        return response()->json($realState, 200);
+        //real_state é a function em User fazendo a ligação com imóvel
+        $realStates = auth('api')->user()->real_state();
+
+        //$realState = $this->realState->paginate('10');
+        return response()->json($realStates->paginate(5), 200);
     }
 
     public function show($id)
     {
         try{
-            $realState = $this->realState->with('photos')->findOrFail($id);
+            //no real_state() só terá os imóveis do user()
+            $realState = auth('api')->user()->real_state()->with('photos')->findOrFail($id);
 
             return response()->json([
                 'data'=>$realState
@@ -42,12 +46,14 @@ class RealStateController extends Controller
         $images = $request->file('images');
 
         try{
+            //Pegar o id do usuário autenticado
+            $data['user_id'] = auth('api')->user()->id;
+
             $realState = $this->realState->create($data);
             //Se $data existir 'categories' e count for verdadeiro
             if(isset($data['categories']) && count($data['categories']))
             {
                 //Chamar o método de ligação ('categories()') e esse método chama o sync, que recebe os ID's para serem salvos para o imóvel das categorias informadas
-
                 $realState->categories()->sync($data['categories']);
             }
 
@@ -79,8 +85,7 @@ class RealStateController extends Controller
         $data = $request->all();
         $images = $request->file('images');
         try{
-            //Procura pelo ID, se não achar, cai no catch
-            $realState = $this->realState->findOrFail($id);
+            $realState = auth('api')->user()->real_state()->findOrFail($id);
             //$data as informações que deseja atualizar
             $realState->update($data);
 
@@ -115,7 +120,7 @@ class RealStateController extends Controller
     public function destroy($id)
     {
         try{
-            $realState = $this->realState->findOrFail($id);
+            $realState = auth('api')->user()->real_state()->findOrFail($id);
             $realState->delete();
 
             return response()->json([
